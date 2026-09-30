@@ -89,7 +89,7 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
   final List<Widget> _pages = [
     const DashboardPage(),
     const Center(child: Text("Live Streams / Radio")),
-    const Center(child: Text("Vitabu / E-Books")),
+    const EbooksListScreen(),
     const SettingsPage(),
   ];
 
@@ -211,7 +211,6 @@ class _DashboardPageState extends State<DashboardPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // BANNER YA NYUMBANI NA LOGO
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
@@ -278,8 +277,6 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
               ),
               const SizedBox(height: 18),
-
-              // SEARCH BAR
               TextField(
                 onChanged: (val) {
                   setState(() {
@@ -298,8 +295,6 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
               ),
               const SizedBox(height: 20),
-
-              // MOST LISTENED SECTION
               const Text(
                 "Zinazosikilizwa Zaidi (Most Listened)",
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
@@ -363,8 +358,6 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
               ),
               const SizedBox(height: 22),
-
-              // CATEGORIES MAIN LIST
               const Text(
                 "Makundi Makuu (Categories)",
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
@@ -405,6 +398,13 @@ class _DashboardPageState extends State<DashboardPage> {
                               builder: (context) => const QnaSearchScreen(),
                             ),
                           );
+                        } else if (cat["title"] == "E-books") {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const EbooksListScreen(),
+                            ),
+                          );
                         } else if (cat["title"] == "Darsa") {
                           Navigator.push(
                             context,
@@ -427,6 +427,295 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ==================== E-BOOKS (VITABU / PDF / WORDS) ====================
+class EbooksListScreen extends StatefulWidget {
+  const EbooksListScreen({super.key});
+
+  @override
+  State<EbooksListScreen> createState() => _EbooksListScreenState();
+}
+
+class _EbooksListScreenState extends State<EbooksListScreen> {
+  String bookSearch = "";
+
+  final List<Map<String, String>> ebooks = const [
+    {
+      "title": "Bulugh al-Maram (Fiqh)",
+      "author": "Al-Hafidh Ibn Hajar Al-Asqalani",
+      "pages": "340 Pages",
+      "fileType": "PDF",
+      "size": "4.2 MB",
+      "content": """
+Sura ya 1: Kitabu cha Twahara (Usafi)
+1. Hadith kutoka kwa Abu Hurairah (R.A): Mtume (S.A.W) kasema: "Swala ya mmoja wenu haitakubaliwa anapotokwa na hadathi mpaka atawadhe."
+
+2. Maji Mbalimbali na Hukumu Zake: Maji ni twahara na yanasafisha ilimradi hayajabadilika rangi, harufu au ladha yake kwa kitu chenye unajisi.
+... (Yaliyomo zaidi kwenye kitabu hiki)
+      """
+    },
+    {
+      "title": "Kitab At-Tawheed",
+      "author": "Sheikh Muhammad bin Abdil-Wahhab",
+      "pages": "120 Pages",
+      "fileType": "DOCX",
+      "size": "1.8 MB",
+      "content": """
+Mlango wa 1: Fadhila za Tawhiyd na Madhambi Yatakayofutwa Kwa Ajili Yake
+Mwenyezi Mungu Mtukufu amesema: "Na sikuwaumba majini na wanadamu ila wapate kuniabudu." (Adh-Dhariyat: 56)
+
+Tawhiyd ndio msingi wa Dini ya Uislamu na Nguzo kuu kuliko zote.
+... (Yaliyomo zaidi kwenye kitabu hiki)
+      """
+    },
+    {
+      "title": "Ushauri kwa Wanawake wa Kiislamu",
+      "author": "Ummu Abdillah",
+      "pages": "85 Pages",
+      "fileType": "PDF",
+      "size": "2.1 MB",
+      "content": """
+Mwongozo wa Malezi ya Watoto na Majukumu ya Mwanamke katika Uislamu.
+Kitabu hiki kinazungumzia maadili mema, heshima na elimu ya Dini kwa akina mama na mabinti.
+      """
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    final filteredBooks = ebooks.where((book) {
+      final q = bookSearch.toLowerCase();
+      return book["title"]!.toLowerCase().contains(q) ||
+          book["author"]!.toLowerCase().contains(q);
+    }).toList();
+
+    return Scaffold(
+      appBar: AppBar(title: const Text("Maktaba ya Vitabu (E-Books)")),
+      body: Padding(
+        padding: const EdgeInsets.all(14.0),
+        child: Column(
+          children: [
+            TextField(
+              onChanged: (val) {
+                setState(() {
+                  bookSearch = val;
+                });
+              },
+              decoration: InputDecoration(
+                hintText: "Tafuta kitabu au mwandishi...",
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: theme.colorScheme.surface,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: ListView.builder(
+                itemCount: filteredBooks.length,
+                itemBuilder: (context, index) {
+                  final book = filteredBooks[index];
+                  final isPdf = book["fileType"] == "PDF";
+
+                  return Card(
+                    color: theme.colorScheme.surface,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isPdf ? Colors.red.withOpacity(0.15) : Colors.blue.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              isPdf ? Icons.picture_as_pdf_rounded : Icons.description_rounded,
+                              color: isPdf ? Colors.redAccent : Colors.blue,
+                              size: 32,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  book["title"]!,
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  book["author"]!,
+                                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                ),
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: theme.colorScheme.primary.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        book["fileType"]!,
+                                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text("${book['pages']} • ${book['size']}", style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                                  ],
+                                )
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.menu_book_rounded),
+                            tooltip: "Soma Kitabu",
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => BookReaderScreen(
+                                    title: book["title"]!,
+                                    author: book["author"]!,
+                                    content: book["content"]!,
+                                    fileType: book["fileType"]!,
+                                  ),
+                                ),
+                              );
+                            },
+                          )
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ==================== BOOK READER & DOWNLOAD SCREEN ====================
+class BookReaderScreen extends StatefulWidget {
+  final String title;
+  final String author;
+  final String content;
+  final String fileType;
+
+  const BookReaderScreen({
+    super.key,
+    required this.title,
+    required this.author,
+    required this.content,
+    required this.fileType,
+  });
+
+  @override
+  State<BookReaderScreen> createState() => _BookReaderScreenState();
+}
+
+class _BookReaderScreenState extends State<BookReaderScreen> {
+  double _fontSize = 16.0;
+
+  void _downloadBook() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Inapakua kitabu cha '${widget.title}' (${widget.fileType})..."),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.download_rounded),
+            tooltip: "Download Kitabu",
+            onPressed: _downloadBook,
+          ),
+          IconButton(
+            icon: const Icon(Icons.text_fields),
+            tooltip: "Ongeza Font",
+            onPressed: () {
+              setState(() {
+                _fontSize = (_fontSize >= 24.0) ? 14.0 : _fontSize + 2.0;
+              });
+            },
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(18.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: theme.colorScheme.primary.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    widget.fileType == "PDF" ? Icons.picture_as_pdf : Icons.description,
+                    color: widget.fileType == "PDF" ? Colors.redAccent : Colors.blue,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(widget.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        Text("Mwandishi: ${widget.author}", style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    ),
+                    onPressed: _downloadBook,
+                    icon: const Icon(Icons.download, size: 16),
+                    label: const Text("Download", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  )
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Divider(),
+            const SizedBox(height: 10),
+            Text(
+              widget.content,
+              style: TextStyle(fontSize: _fontSize, height: 1.6),
+            ),
+          ],
         ),
       ),
     );
@@ -610,20 +899,22 @@ class AdminDashboardScreen extends StatelessWidget {
                     icon: Icons.upload_file_rounded,
                     color: Colors.blue,
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Hatua inayofuata: Kuweka fomu ya kupakia Audio")),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const UploadAudioScreen()),
                       );
                     },
                   ),
                   _buildAdminCard(
                     context,
-                    title: "Pakia Kitabu (PDF)",
+                    title: "Pakia Kitabu (PDF/Word)",
                     subtitle: "Ongeza E-book mpya",
                     icon: Icons.picture_as_pdf_rounded,
                     color: Colors.redAccent,
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Hatua inayofuata: Kuweka fomu ya kupakia PDF")),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const UploadPdfScreen()),
                       );
                     },
                   ),
@@ -683,6 +974,232 @@ class AdminDashboardScreen extends StatelessWidget {
               Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey, fontSize: 10)),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ==================== UPLOAD AUDIO SCREEN ====================
+class UploadAudioScreen extends StatefulWidget {
+  const UploadAudioScreen({super.key});
+
+  @override
+  State<UploadAudioScreen> createState() => _UploadAudioScreenState();
+}
+
+class _UploadAudioScreenState extends State<UploadAudioScreen> {
+  final _titleController = TextEditingController();
+  final _scholarController = TextEditingController();
+  final _urlController = TextEditingController();
+  String _selectedCategory = "Darsa";
+
+  final List<String> _categories = [
+    "Darsa",
+    "Kalima",
+    "Khutbah",
+    "Mihadhara",
+    "Dawrah / Nad-wah",
+    "Ruduud",
+    "Minaaqashah"
+  ];
+
+  void _submitAudio() {
+    if (_titleController.text.isEmpty || _scholarController.text.isEmpty || _urlController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Tafadhali jaza taarifa zote!")),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Audio ya '${_titleController.text}' imehifadhiwa kikamilifu!"),
+        backgroundColor: Colors.green,
+      ),
+    );
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(title: const Text("Pakia Audio Mpya")),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("Jaza taarifa za Audio:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: _selectedCategory,
+              decoration: InputDecoration(
+                labelText: "Kundi (Category)",
+                prefixIcon: const Icon(Icons.category_rounded),
+                filled: true,
+                fillColor: theme.colorScheme.surface,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              items: _categories.map((cat) {
+                return DropdownMenuItem(value: cat, child: Text(cat));
+              }).toList(),
+              onChanged: (val) {
+                if (val != null) setState(() => _selectedCategory = val);
+              },
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _titleController,
+              decoration: InputDecoration(
+                labelText: "Kichwa cha Darsa / Audio",
+                hintText: "mf. Manhaj Assalikin - Darsa 01",
+                prefixIcon: const Icon(Icons.title_rounded),
+                filled: true,
+                fillColor: theme.colorScheme.surface,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _scholarController,
+              decoration: InputDecoration(
+                labelText: "Jina la Msomeshaji / Sheikh",
+                hintText: "mf. Sheikh Abuul Fadhl",
+                prefixIcon: const Icon(Icons.person_rounded),
+                filled: true,
+                fillColor: theme.colorScheme.surface,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _urlController,
+              decoration: InputDecoration(
+                labelText: "Link ya Audio (URL / MP3 Link)",
+                hintText: "https://example.com/audio.mp3",
+                prefixIcon: const Icon(Icons.link_rounded),
+                filled: true,
+                fillColor: theme.colorScheme.surface,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: _submitAudio,
+                icon: const Icon(Icons.cloud_upload_rounded),
+                label: const Text("Pakia / Hifadhi Audio", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ==================== UPLOAD PDF SCREEN ====================
+class UploadPdfScreen extends StatefulWidget {
+  const UploadPdfScreen({super.key});
+
+  @override
+  State<UploadPdfScreen> createState() => _UploadPdfScreenState();
+}
+
+class _UploadPdfScreenState extends State<UploadPdfScreen> {
+  final _bookTitleController = TextEditingController();
+  final _authorController = TextEditingController();
+  final _pdfUrlController = TextEditingController();
+
+  void _submitPdf() {
+    if (_bookTitleController.text.isEmpty || _authorController.text.isEmpty || _pdfUrlController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Tafadhali jaza taarifa zote za Kitabu!")),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Kitabu cha '${_bookTitleController.text}' kimepakiliwa kikamilifu!"),
+        backgroundColor: Colors.green,
+      ),
+    );
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(title: const Text("Pakia Kitabu Cha PDF / DOCX")),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("Taarifa za Kitabu (E-Book):", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _bookTitleController,
+              decoration: InputDecoration(
+                labelText: "Jina la Kitabu",
+                hintText: "mf. Bulugh al-Maram",
+                prefixIcon: const Icon(Icons.menu_book_rounded),
+                filled: true,
+                fillColor: theme.colorScheme.surface,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _authorController,
+              decoration: InputDecoration(
+                labelText: "Mwandishi / Sheikh",
+                hintText: "mf. Al-Hafidh Ibn Hajar",
+                prefixIcon: const Icon(Icons.edit_note_rounded),
+                filled: true,
+                fillColor: theme.colorScheme.surface,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _pdfUrlController,
+              decoration: InputDecoration(
+                labelText: "Link ya PDF / DOCX (URL / File Link)",
+                hintText: "https://example.com/book.pdf",
+                prefixIcon: const Icon(Icons.picture_as_pdf_rounded),
+                filled: true,
+                fillColor: theme.colorScheme.surface,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: _submitPdf,
+                icon: const Icon(Icons.picture_as_pdf_rounded),
+                label: const Text("Pakia Kitabu", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -791,7 +1308,6 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final appState = NuruDawahApp.of(context);
 
     return Scaffold(
@@ -881,7 +1397,7 @@ class DarsaSubCategoriesScreen extends StatelessWidget {
   }
 }
 
-// LIST YA VITABU / CONTENT
+// LIST YA DARSA AUDIO CONTENT
 class ContentItemsListScreen extends StatelessWidget {
   final String categoryTitle;
 
@@ -920,7 +1436,7 @@ class ContentItemsListScreen extends StatelessWidget {
   }
 }
 
-// LIST YA AUDIO
+// LIST YA AUDIO LESSONS
 class AudioLessonsListScreen extends StatelessWidget {
   final String bookName;
   final String scholarName;
