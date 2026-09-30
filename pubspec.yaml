@@ -1,0 +1,24 @@
+name: nuru_dawah
+description: Nuru ya Da'wa - Darsa, Mihadhara, Fatawa, Rudud na Vitabu.
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  just_audio: ^0.9.40        # audio streaming + offline file playback
+  dio: ^5.7.0                # downloads with progress
+  path_provider: ^2.1.4      # app storage directory
+  shared_preferences: ^2.3.2 # index of downloaded files
+  pdfrx: ^1.3.0              # PDF viewer (network + local file)
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
