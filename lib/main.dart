@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const NuruDawahApp());
 }
 
@@ -30,13 +31,13 @@ class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   final List<Map<String, dynamic>> mainCategories = const [
-    {"title": "Darsa", "count": 12772, "icon": Icons.folder_outlined},
-    {"title": "Kalima", "count": 5219, "icon": Icons.folder_outlined},
-    {"title": "Khutbah", "count": 4267, "icon": Icons.folder_outlined},
-    {"title": "Mihadhara", "count": 214, "icon": Icons.folder_outlined},
-    {"title": "E-books", "count": 92, "icon": Icons.folder_outlined},
-    {"title": "Dawrah/Nad-wah", "count": 1291, "icon": Icons.folder_outlined},
-    {"title": "Ruduud", "count": 1122, "icon": Icons.folder_outlined},
+    {"title": "Darsa", "count": 12772},
+    {"title": "Kalima", "count": 5219},
+    {"title": "Khutbah", "count": 4267},
+    {"title": "Mihadhara", "count": 214},
+    {"title": "E-books", "count": 92},
+    {"title": "Dawrah/Nad-wah", "count": 1291},
+    {"title": "Ruduud", "count": 1122},
   ];
 
   @override
@@ -57,9 +58,9 @@ class HomeScreen extends StatelessWidget {
         itemBuilder: (context, index) {
           final item = mainCategories[index];
           return ListTile(
-            leading: Icon(item["icon"], color: Colors.grey[400]),
+            leading: const Icon(Icons.folder_outlined, color: Colors.grey),
             title: Text(
-              item["title"],
+              item["title"].toString(),
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -74,14 +75,14 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             onTap: () {
-              if (item["title"] == "Darsa") {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const DarsaSubCategoriesScreen(),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CategoryDetailScreen(
+                    categoryTitle: item["title"].toString(),
                   ),
-                );
-              }
+                ),
+              );
             },
           );
         },
@@ -90,8 +91,9 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class DarsaSubCategoriesScreen extends StatelessWidget {
-  const DarsaSubCategoriesScreen({super.key});
+class CategoryDetailScreen extends StatelessWidget {
+  final String categoryTitle;
+  const CategoryDetailScreen({super.key, required this.categoryTitle});
 
   final List<String> darsaTopics = const [
     "Fiqh",
@@ -106,18 +108,19 @@ class DarsaSubCategoriesScreen extends StatelessWidget {
     "Usuul",
   ];
 
+  @style
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Darsa Categories'),
+        title: Text(categoryTitle),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: 8),
         itemCount: darsaTopics.length,
         itemBuilder: (context, index) {
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: Text(
               darsaTopics[index],
               style: const TextStyle(
