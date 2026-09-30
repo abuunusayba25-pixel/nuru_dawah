@@ -108,7 +108,6 @@ class CategoryDetailScreen extends StatelessWidget {
     "Usuul",
   ];
 
-  @style
   @override
   Widget build(BuildContext context) {
     return Scaffold(
