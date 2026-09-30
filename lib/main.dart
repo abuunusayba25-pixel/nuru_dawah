@@ -63,7 +63,7 @@ class HomeScreen extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color: Colors.grey,
+                color: Colors.white,
               ),
             ),
             trailing: Text(
@@ -118,17 +118,12 @@ class DarsaSubCategoriesScreen extends StatelessWidget {
         itemBuilder: (context, index) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey,
-            ),
             child: Text(
               darsaTopics[index],
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color: Colors.grey,
+                color: Colors.white,
               ),
             ),
           );
