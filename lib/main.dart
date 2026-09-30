@@ -83,13 +83,15 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   String searchQuery = "";
 
-  final List<Map<String, dynamic>> categories = const [
-    {"title": "Fiqh", "icon": Icons.auto_stories, "color": Colors.green},
-    {"title": "Tawhiyd", "icon": Icons.account_balance, "color": Colors.blue},
-    {"title": "Tafseer", "icon": Icons.menu_book, "color": Colors.orange},
-    {"title": "Hadith", "icon": Icons.record_voice_over, "color": Colors.purple},
-    {"title": "Sira", "icon": Icons.history_edu, "color": Colors.amber},
-    {"title": "Adhkar", "icon": Icons.favorite, "color": Colors.red},
+  final List<Map<String, dynamic>> mainCategories = const [
+    {"title": "Darsa", "count": "12,772", "icon": Icons.folder, "color": Colors.green},
+    {"title": "Kalima", "count": "5,219", "icon": Icons.folder, "color": Colors.blue},
+    {"title": "Khutbah", "count": "4,267", "icon": Icons.folder, "color": Colors.orange},
+    {"title": "Mihadhara", "count": "214", "icon": Icons.folder, "color": Colors.purple},
+    {"title": "E-books", "count": "92", "icon": Icons.folder, "color": Colors.amber},
+    {"title": "Dawrah / Nad-wah", "count": "1,291", "icon": Icons.folder, "color": Colors.teal},
+    {"title": "Ruduud", "count": "1,122", "icon": Icons.folder, "color": Colors.red},
+    {"title": "Minaaqashah", "count": "350", "icon": Icons.folder, "color": Colors.indigo},
   ];
 
   final List<Map<String, String>> mostListened = const [
@@ -109,7 +111,7 @@ class _DashboardPageState extends State<DashboardPage> {
     },
     {
       "id": "ml3",
-      "title": "Tafseer Surat Al-Baqarah",
+      "title": "Khutbah ya Ijumaa - Taqwa",
       "scholar": "Ustadh Abdallah",
       "plays": "8.2k Listens",
       "url": "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
@@ -118,6 +120,10 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    final filteredCategories = mainCategories
+        .where((cat) => cat["title"].toString().toLowerCase().contains(searchQuery))
+        .toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Nuru Dawah"),
@@ -143,7 +149,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   });
                 },
                 decoration: InputDecoration(
-                  hintText: "Tafuta Darsa, Kitabu au Msomeshaji...",
+                  hintText: "Tafuta Category, Darsa au Msomeshaji...",
                   prefixIcon: const Icon(Icons.search, color: Colors.grey),
                   filled: true,
                   fillColor: const Color(0xFF1F1F1F),
@@ -162,7 +168,7 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               const SizedBox(height: 10),
               SizedBox(
-                height: 130,
+                height: 120,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: mostListened.length,
@@ -177,7 +183,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         border: Border.all(color: Colors.green.withOpacity(0.3)),
                       ),
                       child: ListTile(
-                        contentPadding: const EdgeInsets.all(10),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         leading: const CircleAvatar(
                           backgroundColor: Colors.green,
                           child: Icon(Icons.play_arrow, color: Colors.white),
@@ -186,19 +192,19 @@ class _DashboardPageState extends State<DashboardPage> {
                           item["title"]!,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 13),
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const SizedBox(height: 4),
-                            Text(item["scholar"]!, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                            const SizedBox(height: 2),
+                            Text(item["scholar"]!, style: const TextStyle(color: Colors.grey, fontSize: 11)),
                             const SizedBox(height: 4),
                             Row(
                               children: [
                                 const Icon(Icons.headset, size: 12, color: Colors.green),
                                 const SizedBox(width: 4),
-                                Text(item["plays"]!, style: const TextStyle(color: Colors.green, fontSize: 11)),
+                                Text(item["plays"]!, style: const TextStyle(color: Colors.green, fontSize: 10)),
                               ],
                             ),
                           ],
@@ -221,47 +227,49 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
               const SizedBox(height: 25),
 
-              // 3. CATEGORIES SECTION
+              // 3. CATEGORIES MAIN LIST
               const Text(
-                "Makundi ya Darsa (Categories)",
+                "Makundi Makuu (Categories)",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
               ),
-              const SizedBox(height: 12),
-              GridView.builder(
+              const SizedBox(height: 10),
+              ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: categories.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 1.2,
-                ),
+                itemCount: filteredCategories.length,
                 itemBuilder: (context, index) {
-                  final cat = categories[index];
+                  final cat = filteredCategories[index];
                   return Card(
                     color: const Color(0xFF1F1F1F),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => BooksListScreen(categoryTitle: cat["title"]),
-                          ),
-                        );
-                      },
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(cat["icon"], size: 40, color: cat["color"]),
-                          const SizedBox(height: 8),
-                          Text(
-                            cat["title"],
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                          ),
-                        ],
+                    margin: const EdgeInsets.only(bottom: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    child: ListTile(
+                      leading: Icon(cat["icon"], color: cat["color"], size: 28),
+                      title: Text(
+                        cat["title"],
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16),
                       ),
+                      trailing: Text(
+                        "(${cat['count']})",
+                        style: const TextStyle(color: Colors.grey, fontSize: 14),
+                      ),
+                      onTap: () {
+                        if (cat["title"] == "Darsa") {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const DarsaSubCategoriesScreen(),
+                            ),
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ContentItemsListScreen(categoryTitle: cat["title"]),
+                            ),
+                          );
+                        }
+                      },
                     ),
                   );
                 },
@@ -274,39 +282,107 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 }
 
-// 1. LIST YA VITABU NA WAZUNGUMZAJI
-class BooksListScreen extends StatelessWidget {
+// SKRINI YA SUB-CATEGORIES ZA DARSA
+class DarsaSubCategoriesScreen extends StatelessWidget {
+  const DarsaSubCategoriesScreen({super.key});
+
+  final List<Map<String, dynamic>> darsaSubjects = const [
+    {"title": "Fiqh", "icon": Icons.auto_stories, "color": Colors.green},
+    {"title": "Tawhiyd", "icon": Icons.account_balance, "color": Colors.blue},
+    {"title": "Tafseer", "icon": Icons.menu_book, "color": Colors.orange},
+    {"title": "Hadith", "icon": Icons.record_voice_over, "color": Colors.purple},
+    {"title": "Sira", "icon": Icons.history_edu, "color": Colors.amber},
+    {"title": "Usuul", "icon": Icons.account_tree, "color": Colors.teal},
+    {"title": "Lugha", "icon": Icons.translate, "color": Colors.cyan},
+    {"title": "Ahkaam Tajweed", "icon": Icons.record_voice_over, "color": Colors.lightGreen},
+    {"title": "Manhaj", "icon": Icons.explore, "color": Colors.deepOrange},
+    {"title": "Mustalahul Hadith", "icon": Icons.find_in_page, "color": Colors.indigo},
+    {"title": "Darsa za Wanawake", "icon": Icons.female, "color": Colors.pink},
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Makundi ya Darsa")),
+      body: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: GridView.builder(
+          itemCount: darsaSubjects.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.2,
+          ),
+          itemBuilder: (context, index) {
+            final cat = darsaSubjects[index];
+            return Card(
+              color: const Color(0xFF1F1F1F),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(15),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ContentItemsListScreen(categoryTitle: cat["title"]),
+                    ),
+                  );
+                },
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(cat["icon"], size: 36, color: cat["color"]),
+                    const SizedBox(height: 8),
+                    Text(
+                      cat["title"],
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+// 1. LIST YA MAUDHUI (VITABU/AUDIO) HUSIKA NA MSOMESHAJI
+class ContentItemsListScreen extends StatelessWidget {
   final String categoryTitle;
 
-  const BooksListScreen({super.key, required this.categoryTitle});
+  const ContentItemsListScreen({super.key, required this.categoryTitle});
 
-  final List<Map<String, String>> books = const [
+  final List<Map<String, String>> sampleItems = const [
     {
       "book": "Manhaj Assalikin",
       "scholar": "Sheikh Abuul Fadhl",
-      "description": "Darsa za Fiqh kulingana na chuo cha Manhaj Al-Salikin",
+      "description": "Darsa za masomo kulingana na muundo wa Chuo",
     },
     {
       "book": "Bulugh al-Maram",
       "scholar": "Sheikh Abuul Fadhl",
-      "description": "Ahadith za Fiqhi na Ahkam",
+      "description": "Ahadith na Ahkam za masomo",
     },
     {
-      "book": "Al-Wajiz fi Fiqh",
+      "book": "Sharh Al-Sunnah",
       "scholar": "Ustadh Abdallah",
-      "description": "Fiqhi iliyofanyiwa mepesi",
+      "description": "Masomo ya Misingi na Taaliym",
     },
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Vitabu vya $categoryTitle")),
+      appBar: AppBar(title: Text(categoryTitle)),
       body: ListView.builder(
-        itemCount: books.length,
+        itemCount: sampleItems.length,
         padding: const EdgeInsets.all(12),
         itemBuilder: (context, index) {
-          final item = books[index];
+          final item = sampleItems[index];
           return Card(
             color: const Color(0xFF1F1F1F),
             margin: const EdgeInsets.only(bottom: 12),
@@ -315,7 +391,7 @@ class BooksListScreen extends StatelessWidget {
               contentPadding: const EdgeInsets.all(12),
               leading: const CircleAvatar(
                 backgroundColor: Colors.green,
-                child: Icon(Icons.book, color: Colors.white),
+                child: Icon(Icons.folder, color: Colors.white),
               ),
               title: Text(
                 item["book"]!,
