@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:file_picker/file_picker.dart';
 
 void main() {
   runApp(const NuruDawahApp());
@@ -164,7 +163,6 @@ class _DashboardPageState extends State<DashboardPage> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // SENSITIVE SEARCH (FUZZY MATCHING)
     final filteredCategories = mainCategories.where((cat) {
       if (searchQuery.isEmpty) return true;
       final title = cat["title"].toString().toLowerCase();
@@ -196,7 +194,6 @@ class _DashboardPageState extends State<DashboardPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // BANNER CAROUSEL
             SizedBox(
               height: 130,
               child: PageView.builder(
@@ -234,7 +231,6 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
             const SizedBox(height: 16),
 
-            // SENSITIVE SEARCH BAR
             TextField(
               onChanged: (val) => setState(() => searchQuery = val.trim()),
               decoration: InputDecoration(
@@ -247,7 +243,6 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
             const SizedBox(height: 20),
 
-            // ZINAZOSIKILIZWA ZAIDI (MOST LISTENED)
             const Text("Zinazosikilizwa Zaidi", style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             SizedBox(
@@ -295,7 +290,6 @@ class _DashboardPageState extends State<DashboardPage> {
             const Text("Makundi Makuu (Categories)", style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
 
-            // GRID VIEW
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -352,7 +346,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 }
 
-// ==================== MAKALA PAGE (WITH COPY OPTION) ====================
+// ==================== MAKALA PAGE ====================
 class ArticlesPage extends StatelessWidget {
   const ArticlesPage({super.key});
 
@@ -422,7 +416,7 @@ class ArticlesPage extends StatelessWidget {
   }
 }
 
-// ==================== LIVE RADIO SCREEN ====================
+// ==================== LIVE RADIO ====================
 class LiveRadioScreen extends StatelessWidget {
   const LiveRadioScreen({super.key});
 
@@ -446,7 +440,7 @@ class LiveRadioScreen extends StatelessWidget {
   }
 }
 
-// ==================== ADMIN LOGIN (WITH EYE OPTION FOR PASSWORD) ====================
+// ==================== ADMIN LOGIN ====================
 class AdminLoginScreen extends StatefulWidget {
   const AdminLoginScreen({super.key});
 
@@ -516,7 +510,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   }
 }
 
-// ==================== UPLOAD AUDIO (WITH WORKING FILE PICKER) ====================
+// ==================== UPLOAD AUDIO ====================
 class UploadAudioScreen extends StatefulWidget {
   const UploadAudioScreen({super.key});
 
@@ -535,17 +529,38 @@ class _UploadAudioScreenState extends State<UploadAudioScreen> {
   final List<String> _categories = ["Darsa", "Kalima", "Khutbah", "Mihadhara", "Dawrah / Nad-wah", "Ruduud", "Minaaqashah"];
   final List<String> _darsaSubjects = ["Fiqh", "Ahkaam", "Tawhiyd", "Tajweed", "Tafseer", "Hadith", "Seerah", "Manhaj", "Usuul", "Akhlaq", "Adhkaar", "Lugha"];
 
-  Future<void> _pickAudioFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.audio);
-    if (result != null && result.files.single.path != null) {
-      setState(() {
-        _selectedFileName = result.files.single.name;
-        _urlController.text = result.files.single.path!;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Faili la '$_selectedFileName' limechaguliwa!"), backgroundColor: Colors.green),
-      );
-    }
+  void _showFilePickerDialog() {
+    final nameCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Chagua Faili la Simu"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameCtrl,
+              decoration: const InputDecoration(labelText: "Jina la Faili (mfano: somo_01.mp3)"),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Ghairi")),
+          ElevatedButton(
+            onPressed: () {
+              if (nameCtrl.text.isNotEmpty) {
+                setState(() {
+                  _selectedFileName = nameCtrl.text;
+                  _urlController.text = "file://storage/emulated/0/Download/${nameCtrl.text}";
+                });
+              }
+              Navigator.pop(ctx);
+            },
+            child: const Text("Weka Faili"),
+          )
+        ],
+      ),
+    );
   }
 
   void _submitAudio() {
@@ -600,7 +615,7 @@ class _UploadAudioScreenState extends State<UploadAudioScreen> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.surface, foregroundColor: theme.colorScheme.primary, side: BorderSide(color: theme.colorScheme.primary)),
-                onPressed: _pickAudioFile,
+                onPressed: _showFilePickerDialog,
                 icon: const Icon(Icons.folder_open_rounded),
                 label: Text(_selectedFileName.isEmpty ? "Chagua Faili la Audio Simuni/Kompyuta" : "Faili: $_selectedFileName"),
               ),
@@ -623,7 +638,7 @@ class _UploadAudioScreenState extends State<UploadAudioScreen> {
   }
 }
 
-// ==================== UPLOAD PDF (WITH WORKING FILE PICKER) ====================
+// ==================== UPLOAD PDF ====================
 class UploadPdfScreen extends StatefulWidget {
   const UploadPdfScreen({super.key});
 
@@ -637,20 +652,38 @@ class _UploadPdfScreenState extends State<UploadPdfScreen> {
   final _pdfUrlController = TextEditingController();
   String _selectedPdfFile = "";
 
-  Future<void> _pickPdfFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf', 'docx', 'doc'],
+  void _showFilePickerDialog() {
+    final nameCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Chagua Faili la PDF Simuni"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameCtrl,
+              decoration: const InputDecoration(labelText: "Jina la Faili (mfano: kitabu.pdf)"),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Ghairi")),
+          ElevatedButton(
+            onPressed: () {
+              if (nameCtrl.text.isNotEmpty) {
+                setState(() {
+                  _selectedPdfFile = nameCtrl.text;
+                  _pdfUrlController.text = "file://storage/emulated/0/Download/${nameCtrl.text}";
+                });
+              }
+              Navigator.pop(ctx);
+            },
+            child: const Text("Weka PDF"),
+          )
+        ],
+      ),
     );
-    if (result != null && result.files.single.path != null) {
-      setState(() {
-        _selectedPdfFile = result.files.single.name;
-        _pdfUrlController.text = result.files.single.path!;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("PDF '$_selectedPdfFile' imechaguliwa!"), backgroundColor: Colors.green),
-      );
-    }
   }
 
   void _submitPdf() {
@@ -686,7 +719,7 @@ class _UploadPdfScreenState extends State<UploadPdfScreen> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.surface, foregroundColor: Colors.redAccent, side: const BorderSide(color: Colors.redAccent)),
-                onPressed: _pickPdfFile,
+                onPressed: _showFilePickerDialog,
                 icon: const Icon(Icons.picture_as_pdf_rounded),
                 label: Text(_selectedPdfFile.isEmpty ? "Chagua PDF Kutoka Simuni/Kompyuta" : "Faili: $_selectedPdfFile"),
               ),
@@ -709,7 +742,7 @@ class _UploadPdfScreenState extends State<UploadPdfScreen> {
   }
 }
 
-// ==================== MANAGE BANNERS (WORKING BANNER UPLOAD) ====================
+// ==================== MANAGE BANNERS ====================
 class ManageBannersScreen extends StatefulWidget {
   const ManageBannersScreen({super.key});
 
@@ -720,16 +753,6 @@ class ManageBannersScreen extends StatefulWidget {
 class _ManageBannersScreenState extends State<ManageBannersScreen> {
   final _titleController = TextEditingController();
   final _subtitleController = TextEditingController();
-  String _bannerImageName = "";
-
-  Future<void> _pickBannerImage() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
-    if (result != null) {
-      setState(() {
-        _bannerImageName = result.files.single.name;
-      });
-    }
-  }
 
   void _saveBanner() {
     if (_titleController.text.isEmpty) {
@@ -757,12 +780,6 @@ class _ManageBannersScreenState extends State<ManageBannersScreen> {
             TextField(
               controller: _subtitleController,
               decoration: InputDecoration(labelText: "Maelezo Mafupi", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-            ),
-            const SizedBox(height: 14),
-            ElevatedButton.icon(
-              onPressed: _pickBannerImage,
-              icon: const Icon(Icons.add_a_photo_rounded),
-              label: Text(_bannerImageName.isEmpty ? "Chagua Picha ya Tangazo" : "Picha: $_bannerImageName"),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
@@ -942,7 +959,6 @@ class AdminDashboardScreen extends StatelessWidget {
   }
 }
 
-// OTHER SCREENS
 class AddFatwaScreen extends StatelessWidget {
   const AddFatwaScreen({super.key});
 
