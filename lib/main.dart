@@ -335,9 +335,9 @@ class _DashboardPageState extends State<DashboardPage> {
                         ],
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -592,7 +592,7 @@ class AdminDashboardScreen extends StatelessWidget {
   }
 }
 
-// ==================== UPLOAD AUDIO (STABLE NATIVE DIALOG) ====================
+// ==================== UPLOAD AUDIO ====================
 class UploadAudioScreen extends StatefulWidget {
   const UploadAudioScreen({super.key});
 
@@ -604,61 +604,18 @@ class _UploadAudioScreenState extends State<UploadAudioScreen> {
   final _titleController = TextEditingController();
   final _scholarController = TextEditingController();
   final _filePathController = TextEditingController();
-  String _selectedFileName = "";
   String _selectedCategory = "Darsa";
   String _selectedDarsaSubject = "Fiqh";
 
   final List<String> _categories = ["Darsa", "Kalima", "Khutbah", "Mihadhara", "Dawrah / Nad-wah", "Ruduud", "Minaaqashah"];
   final List<String> _darsaSubjects = ["Fiqh", "Ahkaam", "Tawhiyd", "Tajweed", "Tafseer", "Hadith", "Seerah", "Manhaj", "Usuul", "Akhlaq", "Adhkaar", "Lugha"];
 
-  void _openFileSelector() {
-    final pathCtrl = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Chagua / Weka Njia ya Faili"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text("Weka Jina la Faili au Path kutoka kwenye simu yako:", style: TextStyle(fontSize: 12)),
-            const SizedBox(height: 10),
-            TextField(
-              controller: pathCtrl,
-              decoration: const InputDecoration(
-                labelText: "Path / Jina la Faili",
-                hintText: "/Download/darsa_01.mp3",
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Ghairi")),
-          ElevatedButton(
-            onPressed: () {
-              if (pathCtrl.text.isNotEmpty) {
-                setState(() {
-                  _selectedFileName = pathCtrl.text;
-                  _filePathController.text = pathCtrl.text;
-                });
-              }
-              Navigator.pop(ctx);
-            },
-            child: const Text("Chagua Faili"),
-          )
-        ],
-      ),
-    );
-  }
-
   void _submitAudio() {
     if (_titleController.text.isEmpty || _filePathController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Jaza Kichwa cha Somo na Path ya Audio!")));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Jaza Kichwa cha Audio na Path/URL ya Faili!")));
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Audio '${_titleController.text}' imepakiwa kikamilifu!"), backgroundColor: Colors.green),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Audio '${_titleController.text}' imepakiwa kikamilifu!"), backgroundColor: Colors.green));
     Navigator.pop(context);
   }
 
@@ -699,23 +656,6 @@ class _UploadAudioScreenState extends State<UploadAudioScreen> {
               controller: _scholarController,
               decoration: InputDecoration(labelText: "Jina la Msomeshaji / Sheikh (Hiari)", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
             ),
-            const SizedBox(height: 18),
-
-            // BUTTON TO SELECT FILE
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.colorScheme.surface,
-                  foregroundColor: theme.colorScheme.primary,
-                  side: BorderSide(color: theme.colorScheme.primary),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                onPressed: _openFileSelector,
-                icon: const Icon(Icons.folder_open_rounded),
-                label: Text(_selectedFileName.isEmpty ? "CHAGUA FAILI LA AUDIO SIMUNI" : "Faili: $_selectedFileName"),
-              ),
-            ),
             const SizedBox(height: 14),
             TextField(
               controller: _filePathController,
@@ -752,56 +692,13 @@ class _UploadPdfScreenState extends State<UploadPdfScreen> {
   final _bookTitleController = TextEditingController();
   final _authorController = TextEditingController();
   final _pdfPathController = TextEditingController();
-  String _selectedPdfName = "";
-
-  void _openPdfSelector() {
-    final pathCtrl = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Chagua / Weka Faili la PDF"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text("Weka Jina la PDF au Path kutoka kwenye simu yako:", style: TextStyle(fontSize: 12)),
-            const SizedBox(height: 10),
-            TextField(
-              controller: pathCtrl,
-              decoration: const InputDecoration(
-                labelText: "Path / Jina la PDF",
-                hintText: "/Download/kitabu.pdf",
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Ghairi")),
-          ElevatedButton(
-            onPressed: () {
-              if (pathCtrl.text.isNotEmpty) {
-                setState(() {
-                  _selectedPdfName = pathCtrl.text;
-                  _pdfPathController.text = pathCtrl.text;
-                });
-              }
-              Navigator.pop(ctx);
-            },
-            child: const Text("Chagua PDF"),
-          )
-        ],
-      ),
-    );
-  }
 
   void _submitPdf() {
     if (_bookTitleController.text.isEmpty || _pdfPathController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Jaza Jina la Kitabu na Path/URL ya PDF!")));
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Kitabu '${_bookTitleController.text}' kimepakiwa!"), backgroundColor: Colors.green),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Kitabu '${_bookTitleController.text}' kimepakiwa!"), backgroundColor: Colors.green));
     Navigator.pop(context);
   }
 
@@ -822,22 +719,6 @@ class _UploadPdfScreenState extends State<UploadPdfScreen> {
             TextField(
               controller: _authorController,
               decoration: InputDecoration(labelText: "Jina la Mtunzi (Hiari)", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-            ),
-            const SizedBox(height: 18),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.colorScheme.surface,
-                  foregroundColor: Colors.redAccent,
-                  side: const BorderSide(color: Colors.redAccent),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                onPressed: _openPdfSelector,
-                icon: const Icon(Icons.picture_as_pdf_rounded),
-                label: Text(_selectedPdfName.isEmpty ? "CHAGUA PDF KUTOKA SIMUNI" : "Faili: $_selectedPdfName"),
-              ),
             ),
             const SizedBox(height: 14),
             TextField(
@@ -945,8 +826,8 @@ class _ManageBannersScreenState extends State<ManageBannersScreen> {
   }
 
   @override
-  Widget build(BuildContext themeContext) {
-    final theme = Theme.of(themeContext);
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text("Dhibiti Matangazo (Banners)")),
       body: Padding(
