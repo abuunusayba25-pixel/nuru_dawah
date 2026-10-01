@@ -826,8 +826,8 @@ class _ManageBannersScreenState extends State<ManageBannersScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+  Widget build(BuildContext themeContext) {
+    final theme = Theme.of(themeContext);
     return Scaffold(
       appBar: AppBar(title: const Text("Dhibiti Matangazo (Banners)")),
       body: Padding(
