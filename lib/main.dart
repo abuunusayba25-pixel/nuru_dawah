@@ -592,7 +592,7 @@ class AdminDashboardScreen extends StatelessWidget {
   }
 }
 
-// ==================== UPLOAD AUDIO (DIRECT FILE INPUT & SUCCESS) ====================
+// ==================== UPLOAD AUDIO ====================
 class UploadAudioScreen extends StatefulWidget {
   const UploadAudioScreen({super.key});
 
@@ -612,7 +612,7 @@ class _UploadAudioScreenState extends State<UploadAudioScreen> {
 
   void _submitAudio() {
     if (_titleController.text.isEmpty || _filePathController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Jaza Kichwa cha Audio na Njia ya Faili (Path/URL)!")));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Jaza Kichwa cha Audio na Path/URL ya Faili!")));
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Audio '${_titleController.text}' imepakiwa kikamilifu!"), backgroundColor: Colors.green));
@@ -671,7 +671,7 @@ class _UploadAudioScreenState extends State<UploadAudioScreen> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.primary, foregroundColor: Colors.black, minimumSize: const Size(double.infinity, 50)),
               onPressed: _submitAudio,
-              child: const Text("PAKIA AUDIOMPYA", style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text("PAKIA AUDIO MPYA", style: TextStyle(fontWeight: FontWeight.bold)),
             )
           ],
         ),
@@ -695,7 +695,7 @@ class _UploadPdfScreenState extends State<UploadPdfScreen> {
 
   void _submitPdf() {
     if (_bookTitleController.text.isEmpty || _pdfPathController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Jaza Jina la Kitabu na Njia ya PDF (Path/URL)!")));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Jaza Jina la Kitabu na Path/URL ya PDF!")));
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Kitabu '${_bookTitleController.text}' kimepakiwa!"), backgroundColor: Colors.green));
@@ -1097,7 +1097,6 @@ class ContentItemsListScreen extends StatelessWidget {
   final String categoryTitle;
   const ContentItemsListScreen({super.key, required this.categoryTitle});
 
-  @style
   @override
   Widget build(BuildContext context) {
     return Scaffold(
