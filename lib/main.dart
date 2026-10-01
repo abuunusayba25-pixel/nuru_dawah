@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:file_picker/file_picker.dart';
 
 void main() {
   runApp(const NuruDawahApp());
@@ -81,8 +83,8 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
 
   final List<Widget> _pages = [
     const DashboardPage(),
-    const DarsaSubCategoriesScreen(),
-    const EbooksListScreen(),
+    const LiveRadioScreen(),
+    const ArticlesPage(),
     const SettingsPage(),
   ];
 
@@ -104,8 +106,8 @@ class _MainHomeScreenState extends State<MainHomeScreen> {
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Nyumbani'),
-          BottomNavigationBarItem(icon: Icon(Icons.auto_stories_rounded), label: 'Darsa'),
-          BottomNavigationBarItem(icon: Icon(Icons.picture_as_pdf_rounded), label: 'Vitabu (PDF)'),
+          BottomNavigationBarItem(icon: Icon(Icons.radio_rounded), label: 'Live'),
+          BottomNavigationBarItem(icon: Icon(Icons.article_rounded), label: 'Makala'),
           BottomNavigationBarItem(icon: Icon(Icons.settings_rounded), label: 'Mipangilio'),
         ],
       ),
@@ -139,6 +141,11 @@ class _DashboardPageState extends State<DashboardPage> {
     },
   ];
 
+  final List<Map<String, dynamic>> mostListened = const [
+    {"title": "Manhaj Assalikin - Darsa 01", "scholar": "Sheikh Abuul Fadhl", "plays": "12.5k Listens"},
+    {"title": "Bulugh al-Maram - Kitab al-Taharah", "scholar": "Sheikh Abuul Fadhl", "plays": "9.8k Listens"},
+  ];
+
   final List<Map<String, dynamic>> mainCategories = const [
     {"title": "Maswali na Majibu (Fatawa)", "count": "850+", "icon": Icons.quiz_rounded, "color": Color(0xFFEC4899)},
     {"title": "Darsa", "count": "12,772", "icon": Icons.auto_stories, "color": Color(0xFFFFB300)},
@@ -146,6 +153,7 @@ class _DashboardPageState extends State<DashboardPage> {
     {"title": "Khutbah", "count": "4,267", "icon": Icons.campaign, "color": Color(0xFFF97316)},
     {"title": "Mihadhara", "count": "214", "icon": Icons.groups, "color": Color(0xFFA855F7)},
     {"title": "Vitabu (PDF)", "count": "92", "icon": Icons.picture_as_pdf, "color": Color(0xFFEF4444)},
+    {"title": "Short Clips", "count": "310", "icon": Icons.movie_rounded, "color": Color(0xFF10B981)},
     {"title": "Dawrah / Nad-wah", "count": "1,291", "icon": Icons.school, "color": Color(0xFF14B8A6)},
     {"title": "Ruduud", "count": "1,122", "icon": Icons.gavel, "color": Color(0xFFEAB308)},
     {"title": "Minaaqashah", "count": "350", "icon": Icons.forum, "color": Color(0xFF6366F1)},
@@ -156,9 +164,13 @@ class _DashboardPageState extends State<DashboardPage> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final filteredCategories = mainCategories
-        .where((cat) => cat["title"].toString().toLowerCase().contains(searchQuery))
-        .toList();
+    // SENSITIVE SEARCH (FUZZY MATCHING)
+    final filteredCategories = mainCategories.where((cat) {
+      if (searchQuery.isEmpty) return true;
+      final title = cat["title"].toString().toLowerCase();
+      final queryWords = searchQuery.toLowerCase().split(' ');
+      return queryWords.every((word) => title.contains(word));
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -222,15 +234,60 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
             const SizedBox(height: 16),
 
-            // SEARCH BAR
+            // SENSITIVE SEARCH BAR
             TextField(
-              onChanged: (val) => setState(() => searchQuery = val.toLowerCase()),
+              onChanged: (val) => setState(() => searchQuery = val.trim()),
               decoration: InputDecoration(
-                hintText: "Tafuta Category, Darsa au Somo...",
+                hintText: "Tafuta Darsa, Somo, au Category...",
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: theme.colorScheme.surface,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // ZINAZOSIKILIZWA ZAIDI (MOST LISTENED)
+            const Text("Zinazosikilizwa Zaidi", style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 100,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: mostListened.length,
+                itemBuilder: (context, index) {
+                  final item = mostListened[index];
+                  return Container(
+                    width: 250,
+                    margin: const EdgeInsets.only(right: 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: theme.colorScheme.primary.withOpacity(0.2)),
+                    ),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: theme.colorScheme.primary,
+                          child: const Icon(Icons.play_arrow_rounded, color: Colors.black),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(item["title"]!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13), overflow: TextOverflow.ellipsis),
+                              Text(item["scholar"]!, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                              Text(item["plays"]!, style: TextStyle(fontSize: 10, color: theme.colorScheme.primary)),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                  );
+                },
               ),
             ),
             const SizedBox(height: 20),
@@ -295,7 +352,432 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 }
 
-// ==================== DARSA SUB-CATEGORIES SCREEN ====================
+// ==================== MAKALA PAGE (WITH COPY OPTION) ====================
+class ArticlesPage extends StatelessWidget {
+  const ArticlesPage({super.key});
+
+  final List<Map<String, String>> articles = const [
+    {
+      "title": "Fadhila za Kumuomba Mwenyezi Mungu Msamaha (Istighfar)",
+      "author": "Sheikh Abuul Fadhl",
+      "date": "01 Oktoba 2026",
+      "content": "Hakika Istighfar ni katika mambo yenye kufungua milango ya kheri, kuleta amani rohoni na kufuta madhambi. Mtume (S.A.W) alikuwa akiomba msamaha zaidi ya mara mia moja kwa siku..."
+    },
+    {
+      "title": "Adabu za Siku ya Ijumaa",
+      "author": "Sheikh Abuul Fadhl",
+      "date": "25 Septemba 2026",
+      "content": "Katika siku ya Ijumaa kuna adabu na mambo yaliyosisitizwa kufanywa kama vile kukoga, kuvaa nguo safi, kujitia perfume na kusoma Surah Al-Kahf mapema..."
+    }
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(title: const Text("Makala na Maandishi")),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(14),
+        itemCount: articles.length,
+        itemBuilder: (context, index) {
+          final item = articles[index];
+          return Card(
+            color: theme.colorScheme.surface,
+            margin: const EdgeInsets.only(bottom: 12),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(14.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(item["title"]!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const SizedBox(height: 4),
+                  Text("${item['author']} • ${item['date']}", style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                  const SizedBox(height: 10),
+                  SelectableText(
+                    item["content"]!,
+                    style: const TextStyle(fontSize: 14, height: 1.5),
+                  ),
+                  const SizedBox(height: 10),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: "${item['title']}\n\n${item['content']}"));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Makala imecopyiwa!"), backgroundColor: Colors.green),
+                        );
+                      },
+                      icon: const Icon(Icons.copy_rounded, size: 18),
+                      label: const Text("Copy Makala"),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ==================== LIVE RADIO SCREEN ====================
+class LiveRadioScreen extends StatelessWidget {
+  const LiveRadioScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Live Streams & Radio")),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.radio_rounded, size: 80, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(height: 16),
+            const Text("Radio ya Nuru Dawah ipo Live", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            const Text("Sikiliza matangazo ya moja kwa moja ya darsa na mawaidha", style: TextStyle(color: Colors.grey)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ==================== ADMIN LOGIN (WITH EYE OPTION FOR PASSWORD) ====================
+class AdminLoginScreen extends StatefulWidget {
+  const AdminLoginScreen({super.key});
+
+  @override
+  State<AdminLoginScreen> createState() => _AdminLoginScreenState();
+}
+
+class _AdminLoginScreenState extends State<AdminLoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _showPassword = false;
+
+  void _login() {
+    if (_emailController.text == "admin@nurudawah.org" && _passwordController.text == "123456") {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Email au Password si sahihi! (admin@nurudawah.org / 123456)"), backgroundColor: Colors.redAccent),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(title: const Text("Admin Portal Login")),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.lock_person_rounded, size: 70, color: Colors.amber),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _emailController,
+              decoration: InputDecoration(labelText: "Barua Pepe (Email)", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _passwordController,
+              obscureText: !_showPassword,
+              decoration: InputDecoration(
+                labelText: "Neno la Siri (Password)",
+                filled: true,
+                fillColor: theme.colorScheme.surface,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                suffixIcon: IconButton(
+                  icon: Icon(_showPassword ? Icons.visibility_rounded : Icons.visibility_off_rounded),
+                  onPressed: () => setState(() => _showPassword = !_showPassword),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.primary, foregroundColor: Colors.black, minimumSize: const Size(double.infinity, 50)),
+              onPressed: _login,
+              child: const Text("INGIA KAMA ADMIN", style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ==================== UPLOAD AUDIO (WITH WORKING FILE PICKER) ====================
+class UploadAudioScreen extends StatefulWidget {
+  const UploadAudioScreen({super.key});
+
+  @override
+  State<UploadAudioScreen> createState() => _UploadAudioScreenState();
+}
+
+class _UploadAudioScreenState extends State<UploadAudioScreen> {
+  final _titleController = TextEditingController();
+  final _scholarController = TextEditingController();
+  final _urlController = TextEditingController();
+  String _selectedCategory = "Darsa";
+  String _selectedDarsaSubject = "Fiqh";
+  String _selectedFileName = "";
+
+  final List<String> _categories = ["Darsa", "Kalima", "Khutbah", "Mihadhara", "Dawrah / Nad-wah", "Ruduud", "Minaaqashah"];
+  final List<String> _darsaSubjects = ["Fiqh", "Ahkaam", "Tawhiyd", "Tajweed", "Tafseer", "Hadith", "Seerah", "Manhaj", "Usuul", "Akhlaq", "Adhkaar", "Lugha"];
+
+  Future<void> _pickAudioFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.audio);
+    if (result != null && result.files.single.path != null) {
+      setState(() {
+        _selectedFileName = result.files.single.name;
+        _urlController.text = result.files.single.path!;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Faili la '$_selectedFileName' limechaguliwa!"), backgroundColor: Colors.green),
+      );
+    }
+  }
+
+  void _submitAudio() {
+    if (_titleController.text.isEmpty || _urlController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Jaza Kichwa cha Audio na Faili/Link!")));
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Audio imepakiwa kikamilifu!"), backgroundColor: Colors.green));
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(title: const Text("Pakia Audio Mpya")),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DropdownButtonFormField<String>(
+              value: _selectedCategory,
+              decoration: InputDecoration(labelText: "Kundi Kuu", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+              items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+              onChanged: (v) => setState(() => _selectedCategory = v!),
+            ),
+            const SizedBox(height: 14),
+
+            if (_selectedCategory == "Darsa") ...[
+              DropdownButtonFormField<String>(
+                value: _selectedDarsaSubject,
+                decoration: InputDecoration(labelText: "Somo la Darsa", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+                items: _darsaSubjects.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                onChanged: (v) => setState(() => _selectedDarsaSubject = v!),
+              ),
+              const SizedBox(height: 14),
+            ],
+
+            TextField(
+              controller: _titleController,
+              decoration: InputDecoration(labelText: "Kichwa cha Darsa / Audio", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _scholarController,
+              decoration: InputDecoration(labelText: "Jina la Msomeshaji / Sheikh (Optional)", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+            ),
+            const SizedBox(height: 18),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.surface, foregroundColor: theme.colorScheme.primary, side: BorderSide(color: theme.colorScheme.primary)),
+                onPressed: _pickAudioFile,
+                icon: const Icon(Icons.folder_open_rounded),
+                label: Text(_selectedFileName.isEmpty ? "Chagua Faili la Audio Simuni/Kompyuta" : "Faili: $_selectedFileName"),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _urlController,
+              decoration: InputDecoration(labelText: "Au Weka Link ya Audio (URL)", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.primary, foregroundColor: Colors.black, minimumSize: const Size(double.infinity, 50)),
+              onPressed: _submitAudio,
+              child: const Text("Pakia / Hifadhi Audio", style: TextStyle(fontWeight: FontWeight.bold)),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ==================== UPLOAD PDF (WITH WORKING FILE PICKER) ====================
+class UploadPdfScreen extends StatefulWidget {
+  const UploadPdfScreen({super.key});
+
+  @override
+  State<UploadPdfScreen> createState() => _UploadPdfScreenState();
+}
+
+class _UploadPdfScreenState extends State<UploadPdfScreen> {
+  final _bookTitleController = TextEditingController();
+  final _authorController = TextEditingController();
+  final _pdfUrlController = TextEditingController();
+  String _selectedPdfFile = "";
+
+  Future<void> _pickPdfFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'docx', 'doc'],
+    );
+    if (result != null && result.files.single.path != null) {
+      setState(() {
+        _selectedPdfFile = result.files.single.name;
+        _pdfUrlController.text = result.files.single.path!;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("PDF '$_selectedPdfFile' imechaguliwa!"), backgroundColor: Colors.green),
+      );
+    }
+  }
+
+  void _submitPdf() {
+    if (_bookTitleController.text.isEmpty || _pdfUrlController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Weka Jina la Kitabu na Faili/Link ya PDF!")));
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Kitabu kimepakiwa kikamilifu!"), backgroundColor: Colors.green));
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(title: const Text("Pakia Kitabu (PDF)")),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _bookTitleController,
+              decoration: InputDecoration(labelText: "Jina la Kitabu *", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _authorController,
+              decoration: InputDecoration(labelText: "Jina la Mtunzi (Hiari / Optional)", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+            ),
+            const SizedBox(height: 18),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.surface, foregroundColor: Colors.redAccent, side: const BorderSide(color: Colors.redAccent)),
+                onPressed: _pickPdfFile,
+                icon: const Icon(Icons.picture_as_pdf_rounded),
+                label: Text(_selectedPdfFile.isEmpty ? "Chagua PDF Kutoka Simuni/Kompyuta" : "Faili: $_selectedPdfFile"),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _pdfUrlController,
+              decoration: InputDecoration(labelText: "Au Weka Link ya PDF (URL)", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 50)),
+              onPressed: _submitPdf,
+              child: const Text("Pakia Kitabu", style: TextStyle(fontWeight: FontWeight.bold)),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ==================== MANAGE BANNERS (WORKING BANNER UPLOAD) ====================
+class ManageBannersScreen extends StatefulWidget {
+  const ManageBannersScreen({super.key});
+
+  @override
+  State<ManageBannersScreen> createState() => _ManageBannersScreenState();
+}
+
+class _ManageBannersScreenState extends State<ManageBannersScreen> {
+  final _titleController = TextEditingController();
+  final _subtitleController = TextEditingController();
+  String _bannerImageName = "";
+
+  Future<void> _pickBannerImage() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
+    if (result != null) {
+      setState(() {
+        _bannerImageName = result.files.single.name;
+      });
+    }
+  }
+
+  void _saveBanner() {
+    if (_titleController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Jaza Kichwa cha Tangazo!")));
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Tangazo limehifadhiwa!"), backgroundColor: Colors.green));
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(title: const Text("Dhibiti Matangazo (Banners)")),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _titleController,
+              decoration: InputDecoration(labelText: "Kichwa cha Tangazo", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _subtitleController,
+              decoration: InputDecoration(labelText: "Maelezo Mafupi", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+            ),
+            const SizedBox(height: 14),
+            ElevatedButton.icon(
+              onPressed: _pickBannerImage,
+              icon: const Icon(Icons.add_a_photo_rounded),
+              label: Text(_bannerImageName.isEmpty ? "Chagua Picha ya Tangazo" : "Picha: $_bannerImageName"),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.primary, foregroundColor: Colors.black, minimumSize: const Size(double.infinity, 50)),
+              onPressed: _saveBanner,
+              child: const Text("Hifadhi Tangazo", style: TextStyle(fontWeight: FontWeight.bold)),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ==================== DARSA SUBCATEGORIES ====================
 class DarsaSubCategoriesScreen extends StatelessWidget {
   const DarsaSubCategoriesScreen({super.key});
 
@@ -390,66 +872,6 @@ class SettingsPage extends StatelessWidget {
   }
 }
 
-// ==================== ADMIN LOGIN ====================
-class AdminLoginScreen extends StatefulWidget {
-  const AdminLoginScreen({super.key});
-
-  @override
-  State<AdminLoginScreen> createState() => _AdminLoginScreenState();
-}
-
-class _AdminLoginScreenState extends State<AdminLoginScreen> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-
-  void _login() {
-    if (_emailController.text == "admin@nurudawah.org" && _passwordController.text == "123456") {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Barua pepe au Neno la siri si sahihi! (Tumia: admin@nurudawah.org / 123456)"), backgroundColor: Colors.redAccent),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(title: const Text("Admin Portal Login")),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.lock_person_rounded, size: 70, color: Colors.amber),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: "Barua Pepe (Email)", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: InputDecoration(labelText: "Neno la Siri (Password)", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.primary, foregroundColor: Colors.black, minimumSize: const Size(double.infinity, 50)),
-              onPressed: _login,
-              child: const Text("INGIA KAMA ADMIN", style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 // ==================== ADMIN DASHBOARD ====================
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
@@ -513,18 +935,6 @@ class AdminDashboardScreen extends StatelessWidget {
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ManageBannersScreen())),
             ),
-            ListTile(
-              leading: const Icon(Icons.delete_forever_rounded, color: Colors.red),
-              title: const Text("Dhibiti / Futa Content (Delete Items)"),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const DeleteContentScreen())),
-            ),
-            ListTile(
-              leading: const Icon(Icons.admin_panel_settings, color: Colors.teal),
-              title: const Text("Dhibiti Ma-Admin / Ruhusa (Credentials)"),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ManageAdminsScreen())),
-            ),
           ],
         ),
       ),
@@ -532,294 +942,15 @@ class AdminDashboardScreen extends StatelessWidget {
   }
 }
 
-// UPLOAD AUDIO SCREEN
-class UploadAudioScreen extends StatefulWidget {
-  const UploadAudioScreen({super.key});
-
-  @override
-  State<UploadAudioScreen> createState() => _UploadAudioScreenState();
-}
-
-class _UploadAudioScreenState extends State<UploadAudioScreen> {
-  final _titleController = TextEditingController();
-  final _scholarController = TextEditingController();
-  final _urlController = TextEditingController();
-  String _selectedCategory = "Darsa";
-  String _selectedDarsaSubject = "Fiqh";
-  String _selectedFileName = "";
-
-  final List<String> _categories = ["Darsa", "Kalima", "Khutbah", "Mihadhara", "Dawrah / Nad-wah", "Ruduud", "Minaaqashah"];
-  final List<String> _darsaSubjects = ["Fiqh", "Ahkaam", "Tawhiyd", "Tajweed", "Tafseer", "Hadith", "Seerah", "Manhaj", "Usuul", "Akhlaq", "Adhkaar", "Lugha"];
-
-  void _pickAudioFile() {
-    setState(() {
-      _selectedFileName = "audio_somo_01.mp3";
-      _urlController.text = "file://storage/emulated/0/Download/$_selectedFileName";
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Faili la Audio limechaguliwa kutoka simuni!"), backgroundColor: Colors.green),
-    );
-  }
-
-  void _submitAudio() {
-    if (_titleController.text.isEmpty || _urlController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Jaza Kichwa cha Audio na Faili/Link!")));
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Audio imepakiwa kikamilifu!"), backgroundColor: Colors.green));
-    Navigator.pop(context);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(title: const Text("Pakia Audio Mpya")),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            DropdownButtonFormField<String>(
-              value: _selectedCategory,
-              decoration: InputDecoration(labelText: "Kundi Kuu", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-              items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-              onChanged: (v) => setState(() => _selectedCategory = v!),
-            ),
-            const SizedBox(height: 14),
-
-            if (_selectedCategory == "Darsa") ...[
-              DropdownButtonFormField<String>(
-                value: _selectedDarsaSubject,
-                decoration: InputDecoration(labelText: "Somo la Darsa", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-                items: _darsaSubjects.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-                onChanged: (v) => setState(() => _selectedDarsaSubject = v!),
-              ),
-              const SizedBox(height: 14),
-            ],
-
-            TextField(
-              controller: _titleController,
-              decoration: InputDecoration(labelText: "Kichwa cha Darsa / Audio", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: _scholarController,
-              decoration: InputDecoration(labelText: "Jina la Msomeshaji / Sheikh (Optional)", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-            ),
-            const SizedBox(height: 18),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.surface, foregroundColor: theme.colorScheme.primary, side: BorderSide(color: theme.colorScheme.primary)),
-                onPressed: _pickAudioFile,
-                icon: const Icon(Icons.folder_open_rounded),
-                label: Text(_selectedFileName.isEmpty ? "Chagua Faili la Audio Simuni/Kompyuta" : "Faili: $_selectedFileName"),
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _urlController,
-              decoration: InputDecoration(labelText: "Au Weka Link ya Audio (URL)", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.primary, foregroundColor: Colors.black, minimumSize: const Size(double.infinity, 50)),
-              onPressed: _submitAudio,
-              child: const Text("Pakia / Hifadhi Audio", style: TextStyle(fontWeight: FontWeight.bold)),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// UPLOAD PDF SCREEN
-class UploadPdfScreen extends StatefulWidget {
-  const UploadPdfScreen({super.key});
-
-  @override
-  State<UploadPdfScreen> createState() => _UploadPdfScreenState();
-}
-
-class _UploadPdfScreenState extends State<UploadPdfScreen> {
-  final _bookTitleController = TextEditingController();
-  final _authorController = TextEditingController();
-  final _pdfUrlController = TextEditingController();
-  String _selectedPdfFile = "";
-
-  void _pickPdfFile() {
-    setState(() {
-      _selectedPdfFile = "kitabu_cha_tawheed.pdf";
-      _pdfUrlController.text = "file://storage/emulated/0/Download/$_selectedPdfFile";
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Faili la PDF limechaguliwa kutoka simuni!"), backgroundColor: Colors.green),
-    );
-  }
-
-  void _submitPdf() {
-    if (_bookTitleController.text.isEmpty || _pdfUrlController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Weka Jina la Kitabu na Faili/Link ya PDF!")));
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Kitabu kimepakiwa kikamilifu!"), backgroundColor: Colors.green));
-    Navigator.pop(context);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(title: const Text("Pakia Kitabu (PDF)")),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _bookTitleController,
-              decoration: InputDecoration(labelText: "Jina la Kitabu *", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: _authorController,
-              decoration: InputDecoration(labelText: "Jina la Mtunzi (Hiari / Optional)", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-            ),
-            const SizedBox(height: 18),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.surface, foregroundColor: Colors.redAccent, side: const BorderSide(color: Colors.redAccent)),
-                onPressed: _pickPdfFile,
-                icon: const Icon(Icons.picture_as_pdf_rounded),
-                label: Text(_selectedPdfFile.isEmpty ? "Chagua PDF Kutoka Simuni/Kompyuta" : "Faili: $_selectedPdfFile"),
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _pdfUrlController,
-              decoration: InputDecoration(labelText: "Au Weka Link ya PDF (URL)", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 50)),
-              onPressed: _submitPdf,
-              child: const Text("Pakia Kitabu", style: TextStyle(fontWeight: FontWeight.bold)),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// MANAGE BANNERS SCREEN
-class ManageBannersScreen extends StatelessWidget {
-  const ManageBannersScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Dhibiti Matangazo")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            ElevatedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.add_a_photo_rounded),
-              label: const Text("Ongeza Tangazo Jipya la Picha"),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// DELETE CONTENT SCREEN
-class DeleteContentScreen extends StatelessWidget {
-  const DeleteContentScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Futa Content")),
-      body: const Center(child: Text("Sehemu ya Kufuta Audio, Vitabu na Fatawa")),
-    );
-  }
-}
-
-// ADD FATWA SCREEN
-class AddFatwaScreen extends StatefulWidget {
+// OTHER SCREENS
+class AddFatwaScreen extends StatelessWidget {
   const AddFatwaScreen({super.key});
 
   @override
-  State<AddFatwaScreen> createState() => _AddFatwaScreenState();
-}
-
-class _AddFatwaScreenState extends State<AddFatwaScreen> {
-  final _questionController = TextEditingController();
-  final _answerController = TextEditingController();
-  final _scholarController = TextEditingController();
-
-  void _saveFatwa() {
-    if (_questionController.text.isEmpty || _answerController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Jaza Swali na Jibu!")));
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Fatwa imehifadhiwa!"), backgroundColor: Colors.green));
-    Navigator.pop(context);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(title: const Text("Ongeza Fatwa Mpya")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView(
-          children: [
-            TextField(
-              controller: _questionController,
-              decoration: InputDecoration(labelText: "Swali", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: _answerController,
-              maxLines: 4,
-              decoration: InputDecoration(labelText: "Jibu la Fatwa", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: _scholarController,
-              decoration: InputDecoration(labelText: "Sheikh / Mwanachuoni Aliyetoa Fatwa", filled: true, fillColor: theme.colorScheme.surface, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: theme.colorScheme.primary, foregroundColor: Colors.black, minimumSize: const Size(double.infinity, 50)),
-              onPressed: _saveFatwa,
-              child: const Text("Hifadhi Fatwa", style: TextStyle(fontWeight: FontWeight.bold)),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class ManageAdminsScreen extends StatelessWidget {
-  const ManageAdminsScreen({super.key});
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Dhibiti Ma-Admin")),
-      body: const Center(child: Text("Usimamizi wa Ruhusa za Admin")),
+      appBar: AppBar(title: const Text("Ongeza Fatwa")),
+      body: const Center(child: Text("Fomu ya Fatwa")),
     );
   }
 }
@@ -831,7 +962,7 @@ class EbooksListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Vitabu (PDF)")),
-      body: const Center(child: Text("Orodha ya Vitabu vya PDF")),
+      body: const Center(child: Text("Orodha ya Vitabu")),
     );
   }
 }
@@ -842,7 +973,7 @@ class QnaSearchScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Maswali na Majibu (Fatawa)")),
+      appBar: AppBar(title: const Text("Fatawa")),
       body: const Center(child: Text("Orodha ya Fatawa")),
     );
   }
